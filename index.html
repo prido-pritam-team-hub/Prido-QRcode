@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PRIDO - Powered by Pritam Kumar Mandal | Advanced Base64, Dev Tools & Canvas QR Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff', 100: '#dbeafe', 200: '#bfdbfe', 300: '#93c5fd', 400: '#60a5fa',
+              500: '#3b82f6', 600: '#2563eb', 700: '#1d4ed8', 800: '#1e40af', 900: '#1e3a8a', 950: '#0f172a'
+            },
+            azure: { 400: '#38bdf8', 500: '#06b6d4', 600: '#0284c7', 900: '#0c4a6e' }
+          }
+        }
+      }
+    }
+  </script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- QR Libraries for generation and canvas reading -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    code, textarea.font-mono, input.font-mono { font-family: 'JetBrains Mono', monospace; }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.3); border-radius: 9999px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(37, 99, 235, 0.6); }
+    .blue-glow { box-shadow: 0 0 25px -5px rgba(37, 99, 235, 0.35); }
+    .blue-glow-lg { box-shadow: 0 0 45px -10px rgba(14, 165, 233, 0.45); }
+    .bg-grid-pattern {
+      background-size: 24px 24px;
+      background-image: radial-gradient(circle, rgba(59, 130, 246, 0.15) 1px, transparent 1px);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-full flex flex-col transition-colors duration-200 bg-grid-pattern">
+
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-blue-900/50 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-400 flex items-center justify-center text-white shadow-lg blue-glow">
+          <i class="fa-solid fa-microchip text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-lg font-extrabold tracking-tight bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-200 bg-clip-text text-transparent">
+            PRIDO <span class="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 font-mono">by Pritam Kumar Mandal</span>
+          </h1>
+          <p class="text-xs text-slate-400 font-medium hidden sm:block">Canvas QR Engine • Base64 Media • Live Scanner • Dev Tools</p>
+        </div>
+      </div>
+
+      <!-- Header Quick Actions -->
+      <div class="flex items-center space-x-3">
+        <a href="https://prido-pritam-team-hub.github.io/Pritam-Portfolio/" target="_blank" rel="noopener noreferrer" class="px-3 py-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-indigo-500 text-white border border-cyan-500/40 shadow-md transition flex items-center space-x-2 text-xs font-semibold" title="Visit Pritam Portfolio">
+          <i class="fa-solid fa-globe text-cyan-200"></i>
+          <span class="hidden sm:inline">Pritam Portfolio</span>
+        </a>
+
+        <div class="hidden lg:flex items-center px-3 py-1 bg-blue-950/80 text-cyan-400 border border-blue-800/60 rounded-full text-xs font-medium">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse mr-2"></span>
+          WebRTC Camera & WebCrypto Ready
+        </div>
+
+        <button onclick="toggleHistoryModal()" class="p-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-blue-400 border border-blue-900/50 transition flex items-center space-x-2 text-xs font-semibold" title="Activity History">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <span class="hidden sm:inline">History</span>
+        </button>
+
+        <button id="themeToggle" class="p-2.5 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 border border-blue-900/50 transition" title="Toggle Theme Mode">
+          <i class="fa-solid fa-moon text-blue-400 dark:hidden"></i>
+          <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col">
+    
+    <div class="flex border-b border-blue-900/40 space-x-1 sm:space-x-4 mb-6 overflow-x-auto custom-scrollbar pb-1">
+      <button onclick="switchTab('qr-generator')" id="tab-qr-generator" class="tab-btn py-3 px-4 text-sm font-semibold border-b-2 border-blue-500 text-blue-400 flex items-center space-x-2 whitespace-nowrap transition">
+        <i class="fa-solid fa-qrcode"></i>
+        <span>Studio QR Engine</span>
+      </button>
+      <button onclick="switchTab('qr-scanner')" id="tab-qr-scanner" class="tab-btn py-3 px-4 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-blue-300 flex items-center space-x-2 whitespace-nowrap transition">
+        <i class="fa-solid fa-camera"></i>
+        <span>Live Scanner & Reader</span>
+      </button>
+      <button onclick="switchTab('base64-text')" id="tab-base64-text" class="tab-btn py-3 px-4 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-blue-300 flex items-center space-x-2 whitespace-nowrap transition">
+        <i class="fa-solid fa-font"></i>
+        <span>Base64 Text Tools</span>
+      </button>
+      <button onclick="switchTab('base64-file')" id="tab-base64-file" class="tab-btn py-3 px-4 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-blue-300 flex items-center space-x-2 whitespace-nowrap transition">
+        <i class="fa-solid fa-file-code"></i>
+        <span>Base64 Media Studio</span>
+      </button>
+      <button onclick="switchTab('dev-tools')" id="tab-dev-tools" class="tab-btn py-3 px-4 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-blue-300 flex items-center space-x-2 whitespace-nowrap transition">
+        <i class="fa-solid fa-code"></i>
+        <span>Dev Utilities & JWT</span>
+      </button>
+      <button onclick="switchTab('batch-qr')" id="tab-batch-qr" class="tab-btn py-3 px-4 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-blue-300 flex items-center space-x-2 whitespace-nowrap transition">
+        <i class="fa-solid fa-list-check"></i>
+        <span>Batch QR Studio</span>
+      </button>
+    </div>
+
+    <section id="section-qr-generator" class="tab-content grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Left Config Controls (7 Columns) -->
+      <div class="lg:col-span-7 space-y-6">
+        
+        <!-- Input Type Selector -->
+        <div class="bg-slate-900/80 rounded-2xl p-5 border border-blue-900/50 shadow-xl backdrop-blur-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <label class="block text-xs font-extrabold uppercase tracking-wider text-blue-400">Payload Type</label>
+            <span class="text-xs text-cyan-400 font-mono">Live Rendering</span>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button onclick="setQrType('text')" id="qr-type-text" class="qr-type-btn p-2.5 rounded-xl border text-xs font-bold flex flex-col items-center justify-center space-y-1 bg-blue-600/20 border-blue-500 text-blue-400 transition shadow-sm">
+              <i class="fa-solid fa-align-left text-sm"></i>
+              <span>URL / Text</span>
+            </button>
+            <button onclick="setQrType('wifi')" id="qr-type-wifi" class="qr-type-btn p-2.5 rounded-xl border border-slate-800 text-xs font-semibold flex flex-col items-center justify-center space-y-1 text-slate-400 hover:bg-slate-800/60 hover:text-blue-300 transition">
+              <i class="fa-solid fa-wifi text-sm"></i>
+              <span>Wi-Fi Network</span>
+            </button>
+            <button onclick="setQrType('vcard')" id="qr-type-vcard" class="qr-type-btn p-2.5 rounded-xl border border-slate-800 text-xs font-semibold flex flex-col items-center justify-center space-y-1 text-slate-400 hover:bg-slate-800/60 hover:text-blue-300 transition">
+              <i class="fa-solid fa-address-card text-sm"></i>
+              <span>vCard Contact</span>
+            </button>
+            <button onclick="setQrType('whatsapp')" id="qr-type-whatsapp" class="qr-type-btn p-2.5 rounded-xl border border-slate-800 text-xs font-semibold flex flex-col items-center justify-center space-y-1 text-slate-400 hover:bg-slate-800/60 hover:text-blue-300 transition">
+              <i class="fa-brands fa-whatsapp text-sm"></i>
+              <span>WhatsApp Direct</span>
+            </button>
+            <button onclick="setQrType('crypto')" id="qr-type-crypto" class="qr-type-btn p-2.5 rounded-xl border border-slate-800 text-xs font-semibold flex flex-col items-center justify-center space-y-1 text-slate-400 hover:bg-slate-800/60 hover:text-blue-300 transition">
+              <i class="fa-solid fa-wallet text-sm"></i>
+              <span>Crypto Wallet</span>
+            </button>
+            <button onclick="setQrType('geo')" id="qr-type-geo" class="qr-type-btn p-2.5 rounded-xl border border-slate-800 text-xs font-semibold flex flex-col items-center justify-center space-y-1 text-slate-400 hover:bg-slate-800/60 hover:text-blue-300 transition">
+              <i class="fa-solid fa-location-dot text-sm"></i>
+              <span>Map Geo Location</span>
+            </button>
+            <button onclick="setQrType('email')" id="qr-type-email" class="qr-type-btn p-2.5 rounded-xl border border-slate-800 text-xs font-semibold flex flex-col items-center justify-center space-y-1 text-slate-400 hover:bg-slate-800/60 hover:text-blue-300 transition">
+              <i class="fa-solid fa-envelope text-sm"></i>
+              <span>Email</span>
+            </button>
+            <button onclick="setQrType('sms')" id="qr-type-sms" class="qr-type-btn p-2.5 rounded-xl border border-slate-800 text-xs font-semibold flex flex-col items-center justify-center space-y-1 text-slate-400 hover:bg-slate-800/60 hover:text-blue-300 transition">
+              <i class="fa-solid fa-comment-sms text-sm"></i>
+              <span>SMS / Phone</span>
+            </button>
+          </div>
+
+          <!-- Input Panels -->
+          <div id="qr-input-panel-text" class="space-y-2">
+            <label class="block text-xs font-medium text-slate-300">Target URL or Message Payload</label>
+            <textarea id="qrInputText" rows="3" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-3 text-sm text-slate-100 focus:ring-2 focus:ring-blue-500 focus:outline-none custom-scrollbar" placeholder="https://prido-pritam-team-hub.github.io/Pritam-Portfolio/ or enter custom text payload...">https://prido-pritam-team-hub.github.io/Pritam-Portfolio/</textarea>
+          </div>
+
+          <div id="qr-input-panel-wifi" class="space-y-3 hidden">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Wi-Fi Network Name (SSID)</label>
+              <input id="wifiSsid" type="text" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2.5 text-sm focus:ring-2 focus:ring-blue-500" placeholder="Home Network">
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Password</label>
+                <input id="wifiPass" type="password" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2.5 text-sm focus:ring-2 focus:ring-blue-500" placeholder="Network Password">
+              </div>
+              <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1">Security Type</label>
+                <select id="wifiEnc" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2.5 text-sm focus:ring-2 focus:ring-blue-500">
+                  <option value="WPA">WPA / WPA2 / WPA3</option>
+                  <option value="WEP">WEP</option>
+                  <option value="nopass">Open (No Password)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div id="qr-input-panel-vcard" class="grid grid-cols-1 sm:grid-cols-2 gap-3 hidden">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Full Name</label>
+              <input id="vcardName" type="text" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2 text-sm" placeholder="Alex Morgan">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Phone Number</label>
+              <input id="vcardPhone" type="tel" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2 text-sm" placeholder="+1 (555) 019-2834">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Email Address</label>
+              <input id="vcardEmail" type="email" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2 text-sm" placeholder="alex@tech.org">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Organization</label>
+              <input id="vcardOrg" type="text" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2 text-sm" placeholder="OmniStudio Labs">
+            </div>
+          </div>
+
+          <div id="qr-input-panel-whatsapp" class="grid grid-cols-1 sm:grid-cols-2 gap-3 hidden">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Phone Number (with Country Code)</label>
+              <input id="waPhone" type="text" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2.5 text-sm" placeholder="15551234567">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Pre-filled Message</label>
+              <input id="waMsg" type="text" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2.5 text-sm" placeholder="Hello! Inquiry regarding project">
+            </div>
+          </div>
+
+          <div id="qr-input-panel-crypto" class="grid grid-cols-1 sm:grid-cols-3 gap-3 hidden">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Coin / Token</label>
+              <select id="cryptoType" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2.5 text-sm">
+                <option value="bitcoin">Bitcoin (BTC)</option>
+                <option value="ethereum">Ethereum (ETH)</option>
+                <option value="usdt">USDT (TRC20/ERC20)</option>
+              </select>
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-medium text-slate-300 mb-1">Wallet Address</label>
+              <input id="cryptoAddr" type="text" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2.5 text-sm font-mono" placeholder="0x71C... or 1A1zP...">
+            </div>
+          </div>
+
+          <div id="qr-input-panel-geo" class="grid grid-cols-1 sm:grid-cols-2 gap-3 hidden">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Latitude</label>
+              <input id="geoLat" type="text" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2.5 text-sm font-mono" placeholder="37.7749">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Longitude</label>
+              <input id="geoLng" type="text" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2.5 text-sm font-mono" placeholder="-122.4194">
+            </div>
+          </div>
+
+          <div id="qr-input-panel-email" class="space-y-3 hidden">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Recipient Email</label>
+              <input id="emailTo" type="email" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2.5 text-sm" placeholder="contact@domain.com">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Subject</label>
+              <input id="emailSubject" type="text" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2.5 text-sm" placeholder="Project Inquiry">
+            </div>
+          </div>
+
+          <div id="qr-input-panel-sms" class="grid grid-cols-1 sm:grid-cols-2 gap-3 hidden">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Recipient Phone</label>
+              <input id="smsPhone" type="tel" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2.5 text-sm" placeholder="+15550192834">
+            </div>
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">SMS Message</label>
+              <input id="smsBody" type="text" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2.5 text-sm" placeholder="Instant SMS text...">
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/80 rounded-2xl p-5 border border-blue-900/50 shadow-xl space-y-5 backdrop-blur-sm">
+          
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <label class="block text-xs font-extrabold uppercase tracking-wider text-blue-400">Custom Visual Styling Engine</label>
+            <div class="flex space-x-2">
+              <button onclick="applyColorPreset('#1d4ed8', '#ffffff', 'linear', '#38bdf8')" class="px-2.5 py-1 rounded-lg bg-blue-950 border border-blue-800 text-[11px] font-medium text-cyan-300">Cyber Cyan</button>
+              <button onclick="applyColorPreset('#0f172a', '#38bdf8', 'radial', '#2563eb')" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[11px] font-medium text-blue-300">Neon Dark</button>
+              <button onclick="applyColorPreset('#000000', '#ffffff', 'none')" class="px-2.5 py-1 rounded-lg bg-black text-white border border-slate-800 text-[11px]">Classic</button>
+            </div>
+          </div>
+
+          <!-- Color Matrix -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Foreground Color</label>
+              <div class="flex items-center space-x-2">
+                <input id="qrColorDark" type="color" value="#1d4ed8" class="w-9 h-9 rounded-xl cursor-pointer border border-blue-700/50 bg-slate-950">
+                <input id="qrColorDarkHex" type="text" value="#1d4ed8" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 px-2 py-1.5 text-xs font-mono text-blue-300">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Background Color</label>
+              <div class="flex items-center space-x-2">
+                <input id="qrColorLight" type="color" value="#ffffff" class="w-9 h-9 rounded-xl cursor-pointer border border-blue-700/50 bg-slate-950">
+                <input id="qrColorLightHex" type="text" value="#ffffff" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 px-2 py-1.5 text-xs font-mono text-blue-300">
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Eye (Finder) Color</label>
+              <div class="flex items-center space-x-2">
+                <input id="qrEyeColor" type="color" value="#0284c7" class="w-9 h-9 rounded-xl cursor-pointer border border-blue-700/50 bg-slate-950">
+                <input id="qrEyeColorHex" type="text" value="#0284c7" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 px-2 py-1.5 text-xs font-mono text-cyan-300">
+              </div>
+            </div>
+          </div>
+
+          <!-- Module Shapes & Eye Shapes -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Data Module Pattern</label>
+              <select id="qrDotStyle" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2 text-xs text-slate-200">
+                <option value="square">Square Blocks</option>
+                <option value="rounded">Rounded Modules</option>
+                <option value="dots">Circular Dots</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Finder Eye Shape</label>
+              <select id="qrEyeStyle" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2 text-xs text-slate-200">
+                <option value="square">Square Corners</option>
+                <option value="rounded">Rounded Corner</option>
+                <option value="circle">Circle Eye</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Gradient Style</label>
+              <select id="qrGradientType" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2 text-xs text-slate-200">
+                <option value="none">Solid Color</option>
+                <option value="linear">Linear Gradient</option>
+                <option value="radial">Radial Gradient</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Secondary Gradient & Frame Templates -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div id="gradientColorContainer" class="hidden">
+              <label class="block text-xs font-medium text-slate-300 mb-1">Secondary Gradient Accent</label>
+              <div class="flex items-center space-x-2">
+                <input id="qrColorGradient" type="color" value="#38bdf8" class="w-9 h-9 rounded-xl cursor-pointer border border-blue-700 bg-slate-950">
+                <span class="text-xs text-blue-400 font-mono">Accent End</span>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Frame Template Banner</label>
+              <select id="qrFrameStyle" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2 text-xs text-slate-200">
+                <option value="none">No Frame Overlay</option>
+                <option value="scanme">Header Banner ("SCAN ME")</option>
+                <option value="badge">Badge Frame Box</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Sliders: Size, Quiet Margin & Error Level -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+            <div>
+              <div class="flex justify-between text-xs font-medium mb-1">
+                <span class="text-slate-300">Canvas Resolution</span>
+                <span id="qrSizeVal" class="text-blue-400 font-mono">400px</span>
+              </div>
+              <input id="qrSize" type="range" min="200" max="800" step="25" value="400" class="w-full accent-blue-500">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-medium mb-1">
+                <span class="text-slate-300">Quiet Margin</span>
+                <span id="qrMarginVal" class="text-blue-400 font-mono">16px</span>
+              </div>
+              <input id="qrMargin" type="range" min="0" max="40" step="4" value="16" class="w-full accent-blue-500">
+            </div>
+
+            <div>
+              <div class="flex justify-between text-xs font-medium mb-1">
+                <span class="text-slate-300">Logo Scale</span>
+                <span id="logoScaleVal" class="text-cyan-400 font-mono">22%</span>
+              </div>
+              <input id="logoScale" type="range" min="10" max="30" step="2" value="22" class="w-full accent-cyan-400">
+            </div>
+          </div>
+
+          <!-- Logo Upload Overlay Controls -->
+          <div class="pt-3 border-t border-slate-800 flex items-center justify-between">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Center Logo Watermark</label>
+              <div class="flex items-center space-x-3">
+                <input id="logoInput" type="file" accept="image/*" class="hidden">
+                <button onclick="document.getElementById('logoInput').click()" class="px-3.5 py-2 rounded-xl border border-blue-900 bg-slate-950 text-xs font-semibold text-blue-300 hover:bg-blue-950/60 flex items-center space-x-2 transition">
+                  <i class="fa-solid fa-image text-blue-400"></i>
+                  <span id="logoFileName">Upload Custom Logo</span>
+                </button>
+                <button id="removeLogoBtn" onclick="removeLogo()" class="px-3 py-2 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-950/40 border border-red-900/40 hidden transition">
+                  Remove Logo
+                </button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="lg:col-span-5 flex flex-col">
+        <div class="bg-slate-900/80 rounded-2xl p-6 border border-blue-900/50 shadow-xl backdrop-blur-sm flex-1 flex flex-col items-center justify-between min-h-[480px]">
+          
+          <div class="w-full flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+            <span class="text-xs font-extrabold uppercase tracking-wider text-blue-400">Interactive 2D Canvas</span>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs text-slate-400">Scale:</span>
+              <select id="exportScale" class="bg-slate-950 border border-blue-900 text-xs text-cyan-300 rounded-lg px-2 py-0.5">
+                <option value="1">1x Standard</option>
+                <option value="2">2x HD (800px)</option>
+                <option value="4">4x Ultra 4K</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Canvas Container -->
+          <div class="relative flex-1 flex items-center justify-center p-6 bg-slate-950/80 rounded-2xl border border-dashed border-blue-900/60 w-full blue-glow">
+            <canvas id="qrCanvas" class="max-w-full h-auto rounded-xl shadow-2xl transition-transform hover:scale-[1.02] duration-300"></canvas>
+            <div id="qrHiddenSource" class="hidden"></div>
+          </div>
+
+          <!-- Export & Action Buttons -->
+          <div class="w-full mt-6 space-y-3">
+            <div class="grid grid-cols-3 gap-2">
+              <button onclick="downloadQr('png')" class="py-2.5 px-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs flex items-center justify-center space-x-1.5 shadow-lg blue-glow transition">
+                <i class="fa-solid fa-download"></i>
+                <span>PNG</span>
+              </button>
+              <button onclick="downloadQr('jpeg')" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-blue-200 border border-blue-900/50 font-bold text-xs flex items-center justify-center space-x-1.5 transition">
+                <i class="fa-solid fa-file-image"></i>
+                <span>JPG</span>
+              </button>
+              <button onclick="downloadSvgQr()" class="py-2.5 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-cyan-300 border border-cyan-900/50 font-bold text-xs flex items-center justify-center space-x-1.5 transition">
+                <i class="fa-solid fa-code"></i>
+                <span>SVG Vector</span>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <button onclick="copyCanvasToClipboard()" class="w-full py-2.5 px-3 rounded-xl border border-blue-900 bg-slate-950 text-slate-300 hover:bg-slate-800 font-semibold text-xs flex items-center justify-center space-x-2 transition">
+                <i class="fa-solid fa-copy text-blue-400"></i>
+                <span>Copy Image</span>
+              </button>
+              <button onclick="saveToHistoryLog()" class="w-full py-2.5 px-3 rounded-xl border border-blue-900 bg-slate-950 text-slate-300 hover:bg-slate-800 font-semibold text-xs flex items-center justify-center space-x-2 transition">
+                <i class="fa-solid fa-bookmark text-cyan-400"></i>
+                <span>Save Record</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <section id="section-qr-scanner" class="tab-content hidden space-y-6">
+      <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Live Webcam Stream Card -->
+        <div class="bg-slate-900/80 rounded-2xl p-5 border border-blue-900/50 shadow-xl backdrop-blur-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-blue-400 flex items-center space-x-2">
+              <i class="fa-solid fa-video text-cyan-400"></i>
+              <span>Live WebRTC Camera Feed</span>
+            </h3>
+            <span id="camStatusBadge" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 font-mono">Offline</span>
+          </div>
+
+          <!-- Video Stream Frame -->
+          <div class="relative min-h-[240px] bg-slate-950 rounded-2xl border border-dashed border-blue-900/60 overflow-hidden flex items-center justify-center">
+            <video id="webcamVideo" class="w-full h-full object-cover hidden" playsinline></video>
+            <div id="camPlaceholder" class="text-center p-6 space-y-2">
+              <i class="fa-solid fa-camera-retro text-4xl text-blue-500/60"></i>
+              <p class="text-xs text-slate-400">Click below to start live video stream scanner</p>
+            </div>
+            <!-- Laser overlay scan animation -->
+            <div id="scannerOverlay" class="absolute inset-0 border-2 border-cyan-500/50 pointer-events-none hidden">
+              <div class="w-full h-1 bg-cyan-400 shadow-[0_0_15px_#06b6d4] animate-bounce"></div>
+            </div>
+          </div>
+
+          <div class="flex space-x-3">
+            <button id="startCamBtn" onclick="startCameraScanner()" class="flex-1 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center space-x-2 transition blue-glow">
+              <i class="fa-solid fa-play"></i>
+              <span>Start Camera</span>
+            </button>
+            <button id="stopCamBtn" onclick="stopCameraScanner()" class="hidden flex-1 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-red-400 border border-red-900/40 font-bold text-xs items-center justify-center space-x-2 transition">
+              <i class="fa-solid fa-stop"></i>
+              <span>Stop Stream</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- File Upload QR Reader Card -->
+        <div class="bg-slate-900/80 rounded-2xl p-5 border border-blue-900/50 shadow-xl backdrop-blur-sm space-y-4">
+          <h3 class="text-xs font-extrabold uppercase tracking-wider text-blue-400 flex items-center space-x-2">
+            <i class="fa-solid fa-file-image text-cyan-400"></i>
+            <span>Static Image File Reader</span>
+          </h3>
+
+          <div onclick="document.getElementById('qrScanInput').click()" class="border-2 border-dashed border-blue-800/60 hover:border-blue-500 rounded-2xl p-6 text-center cursor-pointer transition bg-slate-950/60 flex flex-col items-center justify-center space-y-2 blue-glow">
+            <input id="qrScanInput" type="file" accept="image/*" class="hidden" onchange="scanQrFromFile(this.files[0])">
+            <div class="w-12 h-12 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center text-xl border border-blue-500/30">
+              <i class="fa-solid fa-qrcode"></i>
+            </div>
+            <p class="text-xs font-semibold text-slate-200">Select or Drag Image Here</p>
+            <p class="text-[10px] text-slate-400">Supports PNG, JPG, WEBP formats</p>
+          </div>
+
+          <canvas id="scanCanvas" class="hidden"></canvas>
+
+          <!-- Output Box -->
+          <div id="scanResultBox" class="hidden bg-slate-950 rounded-xl p-3 border border-blue-900/60 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-cyan-400">Decoded Payload:</span>
+              <button onclick="copyToClipboard('qrScanOutput')" class="text-[11px] text-blue-400 hover:underline">Copy</button>
+            </div>
+            <textarea id="qrScanOutput" readonly rows="3" class="w-full rounded-lg border border-blue-900/60 bg-slate-900 p-2 text-xs font-mono text-cyan-300 focus:outline-none custom-scrollbar"></textarea>
+            <div id="scanUrlAction" class="hidden">
+              <a id="scanUrlLink" href="#" target="_blank" class="inline-flex items-center space-x-1.5 text-xs font-semibold text-cyan-400 hover:underline">
+                <span>Open Link in New Tab</span>
+                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="section-base64-text" class="tab-content hidden space-y-6">
+      
+      <div class="bg-slate-900/80 rounded-2xl p-4 border border-blue-900/50 shadow-xl backdrop-blur-sm flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center space-x-2">
+          <button id="b64ModeEncode" onclick="setB64Mode('encode')" class="px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-md blue-glow transition">Encode Text</button>
+          <button id="b64ModeDecode" onclick="setB64Mode('decode')" class="px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:bg-slate-700 transition">Decode Base64</button>
+        </div>
+
+        <div class="flex items-center space-x-4">
+          <label class="inline-flex items-center cursor-pointer text-xs font-medium text-slate-300">
+            <input id="urlSafeB64" type="checkbox" onchange="processBase64Text()" class="rounded border-blue-900 bg-slate-950 text-blue-600 focus:ring-blue-500 mr-2">
+            URL-Safe Encoding (- _)
+          </label>
+
+          <button onclick="swapB64Text()" class="px-3.5 py-1.5 rounded-xl border border-blue-900 bg-slate-950 text-xs font-semibold text-blue-300 hover:bg-slate-800 flex items-center space-x-1.5 transition">
+            <i class="fa-solid fa-arrow-right-arrow-left text-blue-400"></i>
+            <span>Swap Input/Output</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Input -->
+        <div class="bg-slate-900/80 rounded-2xl p-5 border border-blue-900/50 shadow-xl backdrop-blur-sm flex flex-col space-y-3">
+          <div class="flex items-center justify-between">
+            <span id="b64InputLabel" class="text-xs font-extrabold uppercase tracking-wider text-blue-400">Plain Text Input</span>
+            <span id="b64InputStats" class="text-xs font-mono text-slate-400">0 chars</span>
+          </div>
+          <textarea id="b64Input" rows="12" oninput="processBase64Text()" class="w-full flex-1 rounded-xl border border-blue-900/60 bg-slate-950 p-3.5 text-sm font-mono text-slate-100 focus:ring-2 focus:ring-blue-500 custom-scrollbar" placeholder="Type or paste text content here..."></textarea>
+          <div class="flex justify-end">
+            <button onclick="clearText('b64Input')" class="text-xs text-slate-400 hover:text-blue-400">Clear Input</button>
+          </div>
+        </div>
+
+        <!-- Output -->
+        <div class="bg-slate-900/80 rounded-2xl p-5 border border-blue-900/50 shadow-xl backdrop-blur-sm flex flex-col space-y-3">
+          <div class="flex items-center justify-between">
+            <span id="b64OutputLabel" class="text-xs font-extrabold uppercase tracking-wider text-blue-400">Base64 Encoded Result</span>
+            <span id="b64OutputStats" class="text-xs font-mono text-slate-400">0 bytes</span>
+          </div>
+          <textarea id="b64Output" readonly rows="12" class="w-full flex-1 rounded-xl border border-blue-900/60 bg-slate-950/80 p-3.5 text-sm font-mono text-cyan-300 focus:outline-none custom-scrollbar" placeholder="Output payload will display here..."></textarea>
+          
+          <div class="flex items-center justify-between pt-1">
+            <span id="jsonFormatBadge" class="hidden text-xs text-cyan-400 bg-cyan-950/80 border border-cyan-800/60 px-2.5 py-1 rounded-md font-mono">
+              <i class="fa-solid fa-code mr-1"></i>Valid JSON Detected
+            </span>
+            <div class="flex space-x-2 ml-auto">
+              <button onclick="copyToClipboard('b64Output')" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center space-x-1.5 shadow-md transition">
+                <i class="fa-solid fa-copy"></i>
+                <span>Copy</span>
+              </button>
+              <button onclick="downloadTextFile('b64Output')" class="px-3.5 py-2 rounded-xl border border-blue-900 bg-slate-950 text-xs font-bold text-slate-200 hover:bg-slate-800 flex items-center space-x-1.5 transition">
+                <i class="fa-solid fa-download"></i>
+                <span>Save .txt</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <section id="section-base64-file" class="tab-content hidden space-y-6">
+      
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- Left: File to Base64 -->
+        <div class="lg:col-span-6 space-y-6">
+          <div class="bg-slate-900/80 rounded-2xl p-6 border border-blue-900/50 shadow-xl backdrop-blur-sm space-y-4">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-blue-400">File to Base64 Converter</h3>
+            
+            <div id="dropZone" onclick="document.getElementById('fileInput').click()" class="border-2 border-dashed border-blue-800/60 hover:border-blue-500 rounded-2xl p-8 text-center cursor-pointer transition bg-slate-950/60 flex flex-col items-center justify-center space-y-3 blue-glow">
+              <input id="fileInput" type="file" class="hidden" onchange="handleFileUpload(this.files[0])">
+              <div class="w-14 h-14 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center text-2xl border border-blue-500/30">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-slate-200">Click or Drag File Here</p>
+                <p class="text-xs text-slate-400 mt-1">Images, Audio (MP3/WAV), Video (MP4), Documents</p>
+              </div>
+            </div>
+
+            <!-- File Meta -->
+            <div id="fileMeta" class="hidden bg-slate-950 rounded-xl p-4 space-y-2 border border-blue-900/60">
+              <div class="flex items-center justify-between">
+                <span id="fileName" class="text-xs font-bold truncate max-w-[200px] text-blue-300">filename.ext</span>
+                <span id="fileSize" class="text-xs font-mono text-slate-400">0 KB</span>
+              </div>
+              <div class="flex items-center justify-between text-xs text-slate-400">
+                <span>MIME: <span id="fileMime" class="font-mono text-cyan-400">image/png</span></span>
+                <span>Base64 Size: <span id="fileB64Size" class="font-mono">0 KB</span></span>
+              </div>
+            </div>
+
+            <!-- Format Snippet -->
+            <div class="space-y-2">
+              <label class="block text-xs font-medium text-slate-300">Export Snippet Format</label>
+              <select id="b64FormatSelect" onchange="updateFileSnippet()" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2.5 text-xs text-slate-200">
+                <option value="dataurl">Data URL (data:mime;base64,...)</option>
+                <option value="raw">Raw Base64 Payload String</option>
+                <option value="html">HTML Tag (&lt;img / audio / video&gt;)</option>
+                <option value="css">CSS Background (url(...))</option>
+              </select>
+            </div>
+
+            <div class="space-y-2">
+              <textarea id="fileB64Output" readonly rows="5" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-3 text-xs font-mono text-cyan-300 focus:outline-none custom-scrollbar" placeholder="Converted payload will display here..."></textarea>
+              <button onclick="copyToClipboard('fileB64Output')" class="w-full py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center space-x-2 transition">
+                <i class="fa-solid fa-copy"></i>
+                <span>Copy Base64 Data</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Right: Base64 to File & Live Player Preview -->
+        <div class="lg:col-span-6 space-y-6">
+          <div class="bg-slate-900/80 rounded-2xl p-6 border border-blue-900/50 shadow-xl backdrop-blur-sm space-y-4">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-blue-400">Base64 Decoder & Multi-Media Player</h3>
+
+            <div class="space-y-2">
+              <label class="block text-xs font-medium text-slate-300">Paste Data URL or Base64 Payload</label>
+              <textarea id="decodeB64Input" rows="5" oninput="decodeBase64ToFile()" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-3 text-xs font-mono text-slate-100 focus:ring-2 focus:ring-blue-500 custom-scrollbar" placeholder="Paste data:image/png;base64,... or raw string"></textarea>
+            </div>
+
+            <!-- Preview Frame (Supports Images, Audio & Video) -->
+            <div class="min-h-[160px] bg-slate-950 rounded-xl border border-dashed border-blue-900/60 p-4 flex flex-col items-center justify-center">
+              <img id="decodedImagePreview" class="max-h-48 rounded-lg shadow-xl hidden" alt="Preview">
+              <audio id="decodedAudioPreview" controls class="w-full hidden"></audio>
+              <video id="decodedVideoPreview" controls class="max-h-48 rounded-lg shadow-xl hidden"></video>
+
+              <div id="decodedFilePlaceholder" class="text-center text-slate-400 text-xs space-y-2">
+                <i class="fa-solid fa-photo-film text-3xl text-blue-500"></i>
+                <p>Paste Base64 payload to render image, audio, or video preview live</p>
+              </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+              <input id="decodedFileName" type="text" value="decoded-file.bin" class="flex-1 rounded-xl border border-blue-900 bg-slate-950 px-3 py-2 text-xs font-mono text-slate-200">
+              <button onclick="downloadDecodedFile()" class="px-4 py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs flex items-center space-x-2 transition">
+                <i class="fa-solid fa-download"></i>
+                <span>Download File</span>
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <section id="section-dev-tools" class="tab-content hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- JWT Token Inspector -->
+        <div class="lg:col-span-7 bg-slate-900/80 rounded-2xl p-6 border border-blue-900/50 shadow-xl backdrop-blur-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-blue-400 flex items-center space-x-2">
+              <i class="fa-solid fa-key text-cyan-400"></i>
+              <span>JWT Token Inspector & Decoder</span>
+            </h3>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-950 text-cyan-400 font-mono">Client-Side</span>
+          </div>
+
+          <div>
+            <label class="block text-xs font-medium text-slate-300 mb-1">Encoded JWT Token String</label>
+            <textarea id="jwtInput" rows="3" oninput="parseJwtToken()" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-3 text-xs font-mono text-slate-100 focus:ring-2 focus:ring-blue-500 custom-scrollbar" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."></textarea>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <span class="block text-xs font-extrabold uppercase text-red-400 mb-1">Header</span>
+              <textarea id="jwtHeader" readonly rows="7" class="w-full rounded-xl border border-red-900/50 bg-slate-950 p-2.5 text-xs font-mono text-red-300 focus:outline-none custom-scrollbar" placeholder="Header JSON..."></textarea>
+            </div>
+
+            <div>
+              <span class="block text-xs font-extrabold uppercase text-purple-400 mb-1">Payload</span>
+              <textarea id="jwtPayload" readonly rows="7" class="w-full rounded-xl border border-purple-900/50 bg-slate-950 p-2.5 text-xs font-mono text-purple-300 focus:outline-none custom-scrollbar" placeholder="Payload JSON..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hashes & URL Encoders -->
+        <div class="lg:col-span-5 bg-slate-900/80 rounded-2xl p-6 border border-blue-900/50 shadow-xl backdrop-blur-sm space-y-4">
+          <h3 class="text-xs font-extrabold uppercase tracking-wider text-blue-400 flex items-center space-x-2">
+            <i class="fa-solid fa-hashtag text-cyan-400"></i>
+            <span>Hash Generator & URL Converter</span>
+          </h3>
+
+          <div class="space-y-3">
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Source Text Input</label>
+              <input id="hashInputText" type="text" oninput="generateHashesAndUrl()" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-2.5 text-xs text-slate-100" placeholder="Enter string for hashing...">
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">URL Encoded Output</label>
+              <div class="flex space-x-2">
+                <input id="urlEncodedOut" readonly type="text" class="flex-1 rounded-xl border border-blue-900/60 bg-slate-950 p-2 text-xs font-mono text-cyan-300">
+                <button onclick="copyToClipboard('urlEncodedOut')" class="px-3 py-1.5 bg-blue-600 rounded-xl text-xs font-bold text-white">Copy</button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">SHA-256 Hash (WebCrypto API)</label>
+              <div class="flex space-x-2">
+                <input id="sha256Out" readonly type="text" class="flex-1 rounded-xl border border-blue-900/60 bg-slate-950 p-2 text-xs font-mono text-cyan-300">
+                <button onclick="copyToClipboard('sha256Out')" class="px-3 py-1.5 bg-blue-600 rounded-xl text-xs font-bold text-white">Copy</button>
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-medium text-slate-300 mb-1">Hexadecimal Representation</label>
+              <div class="flex space-x-2">
+                <input id="hexOut" readonly type="text" class="flex-1 rounded-xl border border-blue-900/60 bg-slate-950 p-2 text-xs font-mono text-cyan-300">
+                <button onclick="copyToClipboard('hexOut')" class="px-3 py-1.5 bg-blue-600 rounded-xl text-xs font-bold text-white">Copy</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="section-batch-qr" class="tab-content hidden space-y-6">
+      <div class="bg-slate-900/80 rounded-2xl p-6 border border-blue-900/50 shadow-xl backdrop-blur-sm space-y-5">
+        <div>
+          <h3 class="text-base font-bold text-slate-100">Batch Multi-QR Code Engine</h3>
+          <p class="text-xs text-slate-400">Enter multiple URLs or text lines (one per row) to batch generate preview codes instantly</p>
+        </div>
+
+        <textarea id="batchInput" rows="5" class="w-full rounded-xl border border-blue-900/60 bg-slate-950 p-3.5 text-xs font-mono text-slate-100 focus:ring-2 focus:ring-blue-500 custom-scrollbar" placeholder="https://prido-pritam-team-hub.github.io/Pritam-Portfolio/&#10;WiFi-Guest-Access&#10;Alex Contact Info"></textarea>
+
+        <div class="flex justify-between items-center">
+          <span id="batchCount" class="text-xs font-mono text-cyan-400">0 entries detected</span>
+          <button onclick="generateBatchQrGrid()" class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-xl shadow-lg blue-glow transition flex items-center space-x-2">
+            <i class="fa-solid fa-gears"></i>
+            <span>Generate Batch Grid</span>
+          </button>
+        </div>
+
+        <!-- Grid Batch Results -->
+        <div id="batchGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 pt-4 border-t border-slate-800">
+          <p class="text-xs text-slate-500 col-span-full text-center py-6">Enter list above and click Generate Batch Grid</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Activity History Modal -->
+  <div id="historyModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm hidden">
+    <div class="bg-slate-900 border border-blue-900/80 rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 m-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-extrabold uppercase tracking-wider text-blue-400 flex items-center space-x-2">
+          <i class="fa-solid fa-clock-rotate-left"></i>
+          <span>Saved Activity Records</span>
+        </h3>
+        <button onclick="toggleHistoryModal()" class="text-slate-400 hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <div id="historyList" class="max-h-60 overflow-y-auto custom-scrollbar space-y-2 text-xs">
+        <p class="text-slate-500 text-center py-4">No saved history records found.</p>
+      </div>
+
+      <div class="flex justify-between items-center pt-2 border-t border-slate-800">
+        <button onclick="clearHistoryLog()" class="text-xs text-red-400 hover:underline">Clear History</button>
+        <button onclick="toggleHistoryModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-xl text-slate-200">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Bar Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 border border-blue-800 blue-glow">
+    <i id="toastIcon" class="fa-solid fa-circle-check text-cyan-400"></i>
+    <span id="toastMsg" class="text-xs font-semibold">Action completed successfully</span>
+  </div>
+
+  <script>
+    // Global Application State Variables
+    let currentQrType = 'text';
+    let loadedLogoImage = null;
+    let rawFileBuffer = null;
+    let rawFileType = '';
+    let b64Mode = 'encode';
+    let qrHistory = JSON.parse(localStorage.getItem('omni_qr_history') || '[]');
+    let cameraStream = null;
+    let cameraScanInterval = null;
+
+    // Window Onload Event Handlers
+    window.onload = function() {
+      initTheme();
+      setupEventListeners();
+      renderCanvasQr();
+      renderHistoryList();
+    };
+
+    function initTheme() {
+      const themeToggle = document.getElementById('themeToggle');
+      themeToggle.addEventListener('click', () => {
+        document.documentElement.classList.toggle('dark');
+        renderCanvasQr();
+      });
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-blue-500', 'text-blue-400');
+        btn.classList.add('border-transparent', 'text-slate-400');
+      });
+
+      document.getElementById('section-' + tabId).classList.remove('hidden');
+      const activeBtn = document.getElementById('tab-' + tabId);
+      activeBtn.classList.remove('border-transparent', 'text-slate-400');
+      activeBtn.classList.add('border-blue-500', 'text-blue-400');
+
+      if (tabId !== 'qr-scanner') {
+        stopCameraScanner();
+      }
+    }
+
+    function setQrType(type) {
+      currentQrType = type;
+      document.querySelectorAll('.qr-type-btn').forEach(btn => {
+        btn.classList.remove('bg-blue-600/20', 'border-blue-500', 'text-blue-400');
+        btn.classList.add('border-slate-800', 'text-slate-400');
+      });
+
+      const activeTypeBtn = document.getElementById('qr-type-' + type);
+      if (activeTypeBtn) {
+        activeTypeBtn.classList.remove('border-slate-800', 'text-slate-400');
+        activeTypeBtn.classList.add('bg-blue-600/20', 'border-blue-500', 'text-blue-400');
+      }
+
+      ['text', 'wifi', 'vcard', 'whatsapp', 'crypto', 'geo', 'email', 'sms'].forEach(p => {
+        const el = document.getElementById('qr-input-panel-' + p);
+        if (el) el.classList.add('hidden');
+      });
+      
+      const selectedPanel = document.getElementById('qr-input-panel-' + type);
+      if (selectedPanel) selectedPanel.classList.remove('hidden');
+
+      renderCanvasQr();
+    }
+
+    function getQrTextValue() {
+      switch (currentQrType) {
+        case 'text':
+          return document.getElementById('qrInputText').value || ' ';
+        case 'wifi':
+          const ssid = document.getElementById('wifiSsid').value || 'WiFi';
+          const pass = document.getElementById('wifiPass').value || '';
+          const enc = document.getElementById('wifiEnc').value;
+          return `WIFI:S:${ssid};T:${enc};P:${pass};;`;
+        case 'vcard':
+          const name = document.getElementById('vcardName').value || 'Alex';
+          const phone = document.getElementById('vcardPhone').value || '';
+          const email = document.getElementById('vcardEmail').value || '';
+          const org = document.getElementById('vcardOrg').value || '';
+          return `BEGIN:VCARD\nVERSION:3.0\nN:${name}\nFN:${name}\nORG:${org}\nTEL:${phone}\nEMAIL:${email}\nEND:VCARD`;
+        case 'whatsapp':
+          const waNum = document.getElementById('waPhone').value || '15551234567';
+          const waMsg = encodeURIComponent(document.getElementById('waMsg').value || '');
+          return `https://wa.me/${waNum}?text=${waMsg}`;
+        case 'crypto':
+          const coin = document.getElementById('cryptoType').value;
+          const addr = document.getElementById('cryptoAddr').value || '0x00000000000';
+          return `${coin}:${addr}`;
+        case 'geo':
+          const lat = document.getElementById('geoLat').value || '37.7749';
+          const lng = document.getElementById('geoLng').value || '-122.4194';
+          return `https://maps.google.com/?q=${lat},${lng}`;
+        case 'email':
+          const to = document.getElementById('emailTo').value || '';
+          const sub = document.getElementById('emailSubject').value || '';
+          return `mailto:${to}?subject=${encodeURIComponent(sub)}`;
+        case 'sms':
+          const sPhone = document.getElementById('smsPhone').value || '';
+          const sBody = document.getElementById('smsBody').value || '';
+          return `smsto:${sPhone}:${sBody}`;
+      }
+      return 'https://prido-pritam-team-hub.github.io/Pritam-Portfolio/';
+    }
+
+    function setupEventListeners() {
+      const inputs = ['qrInputText', 'wifiSsid', 'wifiPass', 'wifiEnc', 'vcardName', 'vcardPhone', 'vcardEmail', 'vcardOrg', 'waPhone', 'waMsg', 'cryptoType', 'cryptoAddr', 'geoLat', 'geoLng', 'emailTo', 'emailSubject', 'smsPhone', 'smsBody'];
+      inputs.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', renderCanvasQr);
+      });
+
+      document.getElementById('qrColorDark').addEventListener('input', (e) => {
+        document.getElementById('qrColorDarkHex').value = e.target.value;
+        renderCanvasQr();
+      });
+      document.getElementById('qrColorLight').addEventListener('input', (e) => {
+        document.getElementById('qrColorLightHex').value = e.target.value;
+        renderCanvasQr();
+      });
+      document.getElementById('qrEyeColor').addEventListener('input', (e) => {
+        document.getElementById('qrEyeColorHex').value = e.target.value;
+        renderCanvasQr();
+      });
+
+      document.getElementById('qrDotStyle').addEventListener('change', renderCanvasQr);
+      document.getElementById('qrEyeStyle').addEventListener('change', renderCanvasQr);
+      document.getElementById('qrFrameStyle').addEventListener('change', renderCanvasQr);
+
+      document.getElementById('qrGradientType').addEventListener('change', (e) => {
+        if (e.target.value !== 'none') {
+          document.getElementById('gradientColorContainer').classList.remove('hidden');
+        } else {
+          document.getElementById('gradientColorContainer').classList.add('hidden');
+        }
+        renderCanvasQr();
+      });
+      document.getElementById('qrColorGradient').addEventListener('input', renderCanvasQr);
+
+      document.getElementById('qrSize').addEventListener('input', (e) => {
+        document.getElementById('qrSizeVal').textContent = e.target.value + 'px';
+        renderCanvasQr();
+      });
+      document.getElementById('qrMargin').addEventListener('input', (e) => {
+        document.getElementById('qrMarginVal').textContent = e.target.value + 'px';
+        renderCanvasQr();
+      });
+      document.getElementById('logoScale').addEventListener('input', (e) => {
+        document.getElementById('logoScaleVal').textContent = e.target.value + '%';
+        renderCanvasQr();
+      });
+
+      document.getElementById('logoInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(evt) {
+            const img = new Image();
+            img.onload = function() {
+              loadedLogoImage = img;
+              document.getElementById('logoFileName').textContent = file.name;
+              document.getElementById('removeLogoBtn').classList.remove('hidden');
+              renderCanvasQr();
+            };
+            img.src = evt.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    function applyColorPreset(dark, light, gradType, secondary = '#ffffff') {
+      document.getElementById('qrColorDark').value = dark;
+      document.getElementById('qrColorDarkHex').value = dark;
+      document.getElementById('qrColorLight').value = light;
+      document.getElementById('qrColorLightHex').value = light;
+      document.getElementById('qrGradientType').value = gradType;
+      
+      if (gradType !== 'none') {
+        document.getElementById('gradientColorContainer').classList.remove('hidden');
+        document.getElementById('qrColorGradient').value = secondary;
+      } else {
+        document.getElementById('gradientColorContainer').classList.add('hidden');
+      }
+      renderCanvasQr();
+    }
+
+    function removeLogo() {
+      loadedLogoImage = null;
+      document.getElementById('logoInput').value = '';
+      document.getElementById('logoFileName').textContent = 'Upload Custom Logo';
+      document.getElementById('removeLogoBtn').classList.add('hidden');
+      renderCanvasQr();
+    }
+
+    function renderCanvasQr() {
+      const text = getQrTextValue();
+      const canvas = document.getElementById('qrCanvas');
+      const ctx = canvas.getContext('2d');
+      const baseSize = parseInt(document.getElementById('qrSize').value);
+      const margin = parseInt(document.getElementById('qrMargin').value);
+      const darkColor = document.getElementById('qrColorDark').value;
+      const lightColor = document.getElementById('qrColorLight').value;
+      const eyeColor = document.getElementById('qrEyeColor').value;
+      const dotStyle = document.getElementById('qrDotStyle').value;
+      const eyeStyle = document.getElementById('qrEyeStyle').value;
+      const frameStyle = document.getElementById('qrFrameStyle').value;
+      const gradientType = document.getElementById('qrGradientType').value;
+      const secondaryColor = document.getElementById('qrColorGradient').value;
+      const logoScalePct = parseInt(document.getElementById('logoScale').value) / 100;
+
+      let frameOffsetHeader = frameStyle === 'scanme' ? 40 : 0;
+      let frameOffsetFooter = frameStyle === 'badge' ? 30 : 0;
+
+      canvas.width = baseSize;
+      canvas.height = baseSize + frameOffsetHeader + frameOffsetFooter;
+
+      const hiddenContainer = document.getElementById('qrHiddenSource');
+      hiddenContainer.innerHTML = '';
+      
+      try {
+        const qr = new QRCode(hiddenContainer, {
+          text: text,
+          width: baseSize,
+          height: baseSize,
+          correctLevel: QRCode.CorrectLevel.H
+        });
+
+        setTimeout(() => {
+          const qrImg = hiddenContainer.querySelector('img') || hiddenContainer.querySelector('canvas');
+          if (!qrImg) return;
+
+          // Draw canvas background
+          ctx.fillStyle = lightColor;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          // Draw Frame Header Banner if selected
+          if (frameStyle === 'scanme') {
+            ctx.fillStyle = darkColor;
+            ctx.fillRect(0, 0, canvas.width, frameOffsetHeader);
+            ctx.fillStyle = lightColor;
+            ctx.font = 'bold 16px Inter, sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText('SCAN ME WITH CAMERA', canvas.width / 2, 26);
+          }
+
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = baseSize;
+          tempCanvas.height = baseSize;
+          const tempCtx = tempCanvas.getContext('2d');
+          tempCtx.drawImage(qrImg, 0, 0, baseSize, baseSize);
+
+          const imgData = tempCtx.getImageData(0, 0, baseSize, baseSize);
+          const sampleModules = 33;
+          const moduleSize = (baseSize - margin * 2) / sampleModules;
+
+          let fillStyle = darkColor;
+          if (gradientType === 'linear') {
+            const grad = ctx.createLinearGradient(0, frameOffsetHeader, baseSize, baseSize);
+            grad.addColorStop(0, darkColor);
+            grad.addColorStop(1, secondaryColor);
+            fillStyle = grad;
+          } else if (gradientType === 'radial') {
+            const grad = ctx.createRadialGradient(baseSize/2, baseSize/2 + frameOffsetHeader, 10, baseSize/2, baseSize/2, baseSize/2);
+            grad.addColorStop(0, darkColor);
+            grad.addColorStop(1, secondaryColor);
+            fillStyle = grad;
+          }
+
+          ctx.fillStyle = fillStyle;
+
+          // Draw module matrix
+          for (let y = margin; y < baseSize - margin; y += moduleSize) {
+            for (let x = margin; x < baseSize - margin; x += moduleSize) {
+              const px = Math.floor(x + moduleSize / 2);
+              const py = Math.floor(y + moduleSize / 2);
+              const index = (py * baseSize + px) * 4;
+              const r = imgData.data[index];
+
+              if (r < 128) {
+                const drawY = y + frameOffsetHeader;
+                ctx.beginPath();
+                if (dotStyle === 'dots') {
+                  ctx.arc(x + moduleSize / 2, drawY + moduleSize / 2, moduleSize / 2.2, 0, Math.PI * 2);
+                  ctx.fill();
+                } else if (dotStyle === 'rounded') {
+                  const rRadius = moduleSize * 0.35;
+                  ctx.roundRect(x, drawY, moduleSize, moduleSize, rRadius);
+                  ctx.fill();
+                } else {
+                  ctx.fillRect(x, drawY, moduleSize + 0.5, moduleSize + 0.5);
+                }
+              }
+            }
+          }
+
+          // Custom Finder Eye Pattern Drawing
+          ctx.fillStyle = eyeColor;
+          const eyeSize = moduleSize * 7;
+          const eyesPos = [
+            { x: margin, y: margin + frameOffsetHeader },
+            { x: baseSize - margin - eyeSize, y: margin + frameOffsetHeader },
+            { x: margin, y: baseSize - margin - eyeSize + frameOffsetHeader }
+          ];
+
+          eyesPos.forEach(pos => {
+            ctx.beginPath();
+            if (eyeStyle === 'circle') {
+              ctx.arc(pos.x + eyeSize/2, pos.y + eyeSize/2, eyeSize/2, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.fillStyle = lightColor;
+              ctx.beginPath();
+              ctx.arc(pos.x + eyeSize/2, pos.y + eyeSize/2, eyeSize/3.5, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.fillStyle = eyeColor;
+              ctx.beginPath();
+              ctx.arc(pos.x + eyeSize/2, pos.y + eyeSize/2, eyeSize/6, 0, Math.PI * 2);
+              ctx.fill();
+            } else if (eyeStyle === 'rounded') {
+              ctx.roundRect(pos.x, pos.y, eyeSize, eyeSize, eyeSize * 0.3);
+              ctx.fill();
+              ctx.fillStyle = lightColor;
+              ctx.beginPath();
+              ctx.roundRect(pos.x + moduleSize, pos.y + moduleSize, eyeSize - moduleSize*2, eyeSize - moduleSize*2, eyeSize * 0.2);
+              ctx.fill();
+              ctx.fillStyle = eyeColor;
+              ctx.beginPath();
+              ctx.roundRect(pos.x + moduleSize*2, pos.y + moduleSize*2, eyeSize - moduleSize*4, eyeSize - moduleSize*4, eyeSize * 0.15);
+              ctx.fill();
+            }
+          });
+
+          // Overlay Logo Image
+          if (loadedLogoImage) {
+            const logoSize = baseSize * logoScalePct;
+            const logoPosX = (baseSize - logoSize) / 2;
+            const logoPosY = (baseSize - logoSize) / 2 + frameOffsetHeader;
+            
+            ctx.fillStyle = lightColor;
+            ctx.beginPath();
+            ctx.arc(baseSize / 2, baseSize / 2 + frameOffsetHeader, logoSize / 1.7, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.drawImage(loadedLogoImage, logoPosX, logoPosY, logoSize, logoSize);
+          }
+
+        }, 50);
+
+      } catch (err) {
+        console.error("Canvas Rendering Error: ", err);
+      }
+    }
+
+    function downloadQr(format) {
+      const scale = parseInt(document.getElementById('exportScale').value);
+      const canvas = document.getElementById('qrCanvas');
+      
+      const scaledCanvas = document.createElement('canvas');
+      scaledCanvas.width = canvas.width * scale;
+      scaledCanvas.height = canvas.height * scale;
+      const sCtx = scaledCanvas.getContext('2d');
+      sCtx.imageSmoothingEnabled = false;
+      sCtx.drawImage(canvas, 0, 0, scaledCanvas.width, scaledCanvas.height);
+
+      const mime = format === 'jpeg' ? 'image/jpeg' : 'image/png';
+      const link = document.createElement('a');
+      link.download = `qrcode-${Date.now()}.${format}`;
+      link.href = scaledCanvas.toDataURL(mime, 0.95);
+      link.click();
+      showToast(`Downloaded ${scale}x High-Res ${format.toUpperCase()}!`);
+    }
+
+    function downloadSvgQr() {
+      const canvas = document.getElementById('qrCanvas');
+      const dataUrl = canvas.toDataURL('image/png');
+      const svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="${canvas.width}" height="${canvas.height}">
+        <image href="${dataUrl}" width="${canvas.width}" height="${canvas.height}" />
+      </svg>`;
+      const blob = new Blob([svgString], { type: 'image/svg+xml' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `qrcode-${Date.now()}.svg`;
+      a.click();
+      showToast('SVG Vector downloaded successfully!');
+    }
+
+    function startCameraScanner() {
+      const video = document.getElementById('webcamVideo');
+      const placeholder = document.getElementById('camPlaceholder');
+      const overlay = document.getElementById('scannerOverlay');
+      const startBtn = document.getElementById('startCamBtn');
+      const stopBtn = document.getElementById('stopCamBtn');
+      const badge = document.getElementById('camStatusBadge');
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showToast('WebRTC Camera unavailable on this device/browser');
+        return;
+      }
+
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+        .then(stream => {
+          cameraStream = stream;
+          video.srcObject = stream;
+          video.setAttribute('playsinline', true);
+          video.play();
+
+          video.classList.remove('hidden');
+          placeholder.classList.add('hidden');
+          overlay.classList.remove('hidden');
+          startBtn.classList.add('hidden');
+          stopBtn.classList.remove('hidden');
+          stopBtn.classList.add('flex');
+          badge.textContent = 'Live Streaming';
+          badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 font-mono';
+
+          cameraScanInterval = setInterval(() => {
+            if (video.readyState === video.HAVE_ENOUGH_DATA) {
+              const canvas = document.getElementById('scanCanvas');
+              const ctx = canvas.getContext('2d');
+              canvas.width = video.videoWidth;
+              canvas.height = video.videoHeight;
+              ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+              const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+              const code = jsQR(imgData.data, imgData.width, imgData.height);
+
+              if (code) {
+                const resBox = document.getElementById('scanResultBox');
+                const out = document.getElementById('qrScanOutput');
+                resBox.classList.remove('hidden');
+                out.value = code.data;
+                showToast('QR Code captured from video stream!');
+                stopCameraScanner();
+              }
+            }
+          }, 250);
+        })
+        .catch(err => {
+          showToast('Camera Permission Denied or Device Unavailable');
+        });
+    }
+
+    function stopCameraScanner() {
+      if (cameraScanInterval) clearInterval(cameraScanInterval);
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+
+      const video = document.getElementById('webcamVideo');
+      const placeholder = document.getElementById('camPlaceholder');
+      const overlay = document.getElementById('scannerOverlay');
+      const startBtn = document.getElementById('startCamBtn');
+      const stopBtn = document.getElementById('stopCamBtn');
+      const badge = document.getElementById('camStatusBadge');
+
+      if (video) video.classList.add('hidden');
+      if (placeholder) placeholder.classList.remove('hidden');
+      if (overlay) overlay.classList.add('hidden');
+      if (startBtn) startBtn.classList.remove('hidden');
+      if (stopBtn) {
+        stopBtn.classList.add('hidden');
+        stopBtn.classList.remove('flex');
+      }
+      if (badge) {
+        badge.textContent = 'Offline';
+        badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 font-mono';
+      }
+    }
+
+    function scanQrFromFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.getElementById('scanCanvas');
+          const ctx = canvas.getContext('2d');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          ctx.drawImage(img, 0, 0);
+
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(imgData.data, imgData.width, imgData.height);
+
+          const resBox = document.getElementById('scanResultBox');
+          const out = document.getElementById('qrScanOutput');
+          const urlAction = document.getElementById('scanUrlAction');
+          const urlLink = document.getElementById('scanUrlLink');
+
+          resBox.classList.remove('hidden');
+
+          if (code) {
+            out.value = code.data;
+            showToast('QR Code successfully decoded!');
+
+            if (code.data.startsWith('http://') || code.data.startsWith('https://')) {
+              urlAction.classList.remove('hidden');
+              urlLink.href = code.data;
+            } else {
+              urlAction.classList.add('hidden');
+            }
+          } else {
+            out.value = "No valid QR code pattern detected in image.";
+            urlAction.classList.add('hidden');
+            showToast('Could not read QR code');
+          }
+        };
+        img.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleFileUpload(file) {
+      if (!file) return;
+      if (file.size > 15 * 1024 * 1024) {
+        showToast('File exceeds max size limit (15MB)');
+        return;
+      }
+
+      rawFileType = file.type;
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        rawFileBuffer = evt.target.result;
+        
+        document.getElementById('fileMeta').classList.remove('hidden');
+        document.getElementById('fileName').textContent = file.name;
+        document.getElementById('fileSize').textContent = formatBytes(file.size);
+        document.getElementById('fileMime').textContent = file.type || 'application/octet-stream';
+        document.getElementById('fileB64Size').textContent = formatBytes(rawFileBuffer.length);
+
+        updateFileSnippet();
+        showToast('File converted to Base64 data!');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateFileSnippet() {
+      if (!rawFileBuffer) return;
+      const fmt = document.getElementById('b64FormatSelect').value;
+      const out = document.getElementById('fileB64Output');
+
+      if (fmt === 'dataurl') {
+        out.value = rawFileBuffer;
+      } else if (fmt === 'raw') {
+        out.value = rawFileBuffer.split(',')[1] || rawFileBuffer;
+      } else if (fmt === 'html') {
+        if (rawFileType.startsWith('audio/')) {
+          out.value = `<audio controls src="${rawFileBuffer}"></audio>`;
+        } else if (rawFileType.startsWith('video/')) {
+          out.value = `<video controls src="${rawFileBuffer}"></video>`;
+        } else {
+          out.value = `<img src="${rawFileBuffer}" alt="Embedded Image" />`;
+        }
+      } else if (fmt === 'css') {
+        out.value = `background-image: url("${rawFileBuffer}");`;
+      }
+    }
+
+    function decodeBase64ToFile() {
+      const val = document.getElementById('decodeB64Input').value.trim();
+      const imgPreview = document.getElementById('decodedImagePreview');
+      const audioPreview = document.getElementById('decodedAudioPreview');
+      const videoPreview = document.getElementById('decodedVideoPreview');
+      const placeholder = document.getElementById('decodedFilePlaceholder');
+
+      imgPreview.classList.add('hidden');
+      audioPreview.classList.add('hidden');
+      videoPreview.classList.add('hidden');
+      placeholder.classList.remove('hidden');
+
+      if (!val) return;
+
+      let dataUrl = val;
+      if (!val.startsWith('data:')) {
+        dataUrl = 'data:image/png;base64,' + val;
+      }
+
+      if (dataUrl.startsWith('data:audio/')) {
+        audioPreview.src = dataUrl;
+        audioPreview.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+      } else if (dataUrl.startsWith('data:video/')) {
+        videoPreview.src = dataUrl;
+        videoPreview.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+      } else {
+        imgPreview.onload = function() {
+          imgPreview.classList.remove('hidden');
+          placeholder.classList.add('hidden');
+        };
+        imgPreview.src = dataUrl;
+      }
+    }
+
+    function downloadDecodedFile() {
+      const val = document.getElementById('decodeB64Input').value.trim();
+      const filename = document.getElementById('decodedFileName').value || 'file.bin';
+      if (!val) return;
+
+      let dataUrl = val;
+      if (!val.startsWith('data:')) {
+        dataUrl = 'data:application/octet-stream;base64,' + val;
+      }
+
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = filename;
+      a.click();
+      showToast('Downloaded decoded file');
+    }
+
+    function parseJwtToken() {
+      const jwt = document.getElementById('jwtInput').value.trim();
+      const headerEl = document.getElementById('jwtHeader');
+      const payloadEl = document.getElementById('jwtPayload');
+
+      if (!jwt) {
+        headerEl.value = '';
+        payloadEl.value = '';
+        return;
+      }
+
+      try {
+        const parts = jwt.split('.');
+        if (parts.length < 2) throw new Error('Invalid JWT format');
+
+        const headerJson = JSON.parse(atob(parts[0]));
+        const payloadJson = JSON.parse(atob(parts[1]));
+
+        headerEl.value = JSON.stringify(headerJson, null, 2);
+        payloadEl.value = JSON.stringify(payloadJson, null, 2);
+        showToast('JWT Parsed Successfully!');
+      } catch (err) {
+        headerEl.value = "Error parsing JWT Token Header";
+        payloadEl.value = "Error parsing JWT Token Payload";
+      }
+    }
+
+    async function generateHashesAndUrl() {
+      const input = document.getElementById('hashInputText').value;
+      const urlOut = document.getElementById('urlEncodedOut');
+      const shaOut = document.getElementById('sha256Out');
+      const hexOut = document.getElementById('hexOut');
+
+      if (!input) {
+        urlOut.value = '';
+        shaOut.value = '';
+        hexOut.value = '';
+        return;
+      }
+
+      urlOut.value = encodeURIComponent(input);
+
+      // Hex String
+      let hex = '';
+      for (let i = 0; i < input.length; i++) {
+        hex += input.charCodeAt(i).toString(16);
+      }
+      hexOut.value = hex;
+
+      // SHA-256 Web Crypto API
+      try {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(input);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        shaOut.value = hashHex;
+      } catch (e) {
+        shaOut.value = "Crypto API unavailable";
+      }
+    }
+
+    function generateBatchQrGrid() {
+      const textVal = document.getElementById('batchInput').value.trim();
+      const grid = document.getElementById('batchGrid');
+      const countEl = document.getElementById('batchCount');
+
+      if (!textVal) {
+        grid.innerHTML = '<p class="text-xs text-slate-500 col-span-full text-center py-6">Enter list above and click Generate Batch Grid</p>';
+        countEl.textContent = '0 entries detected';
+        return;
+      }
+
+      const lines = textVal.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      countEl.textContent = `${lines.length} entries detected`;
+      grid.innerHTML = '';
+
+      lines.forEach((line, idx) => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-950 p-3 rounded-xl border border-blue-900/60 flex flex-col items-center space-y-2";
+        
+        const qrContainer = document.createElement('div');
+        qrContainer.id = `batch-qr-${idx}`;
+
+        const label = document.createElement('span');
+        label.className = "text-[10px] font-mono text-slate-400 truncate max-w-full";
+        label.textContent = line;
+
+        card.appendChild(qrContainer);
+        card.appendChild(label);
+        grid.appendChild(card);
+
+        new QRCode(qrContainer, {
+          text: line,
+          width: 100,
+          height: 100
+        });
+      });
+
+      showToast(`Generated ${lines.length} Batch QR Codes!`);
+    }
+
+    function setB64Mode(mode) {
+      b64Mode = mode;
+      const encBtn = document.getElementById('b64ModeEncode');
+      const decBtn = document.getElementById('b64ModeDecode');
+      
+      if (mode === 'encode') {
+        encBtn.className = "px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-md blue-glow transition";
+        decBtn.className = "px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:bg-slate-700 transition";
+        document.getElementById('b64InputLabel').textContent = "Plain Text Input";
+        document.getElementById('b64OutputLabel').textContent = "Base64 Encoded Result";
+      } else {
+        decBtn.className = "px-4 py-2 rounded-xl text-xs font-bold bg-blue-600 text-white shadow-md blue-glow transition";
+        encBtn.className = "px-4 py-2 rounded-xl text-xs font-bold bg-slate-800 text-slate-400 hover:bg-slate-700 transition";
+        document.getElementById('b64InputLabel').textContent = "Base64 Encoded Input";
+        document.getElementById('b64OutputLabel').textContent = "Decoded Plain Text";
+      }
+      processBase64Text();
+    }
+
+    function processBase64Text() {
+      const input = document.getElementById('b64Input').value;
+      const outputEl = document.getElementById('b64Output');
+      const isUrlSafe = document.getElementById('urlSafeB64').checked;
+      const jsonBadge = document.getElementById('jsonFormatBadge');
+      
+      jsonBadge.classList.add('hidden');
+      document.getElementById('b64InputStats').textContent = `${input.length} chars`;
+
+      if (!input.trim()) {
+        outputEl.value = '';
+        document.getElementById('b64OutputStats').textContent = '0 bytes';
+        return;
+      }
+
+      try {
+        if (b64Mode === 'encode') {
+          let encoded = btoa(unescape(encodeURIComponent(input)));
+          if (isUrlSafe) {
+            encoded = encoded.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+          }
+          outputEl.value = encoded;
+        } else {
+          let sanitized = input.trim();
+          if (isUrlSafe) {
+            sanitized = sanitized.replace(/-/g, '+').replace(/_/g, '/');
+            while (sanitized.length % 4) sanitized += '=';
+          }
+          let decoded = decodeURIComponent(escape(atob(sanitized)));
+          outputEl.value = decoded;
+
+          try {
+            JSON.parse(decoded);
+            jsonBadge.classList.remove('hidden');
+          } catch(e) {}
+        }
+        document.getElementById('b64OutputStats').textContent = `${new Blob([outputEl.value]).size} bytes`;
+      } catch (err) {
+        outputEl.value = "Error: Invalid Base64 String format";
+      }
+    }
+
+    function swapB64Text() {
+      const out = document.getElementById('b64Output').value;
+      if (out && !out.startsWith("Error")) {
+        document.getElementById('b64Input').value = out;
+        setB64Mode(b64Mode === 'encode' ? 'decode' : 'encode');
+      }
+    }
+
+    function saveToHistoryLog() {
+      const val = getQrTextValue();
+      if (!val.trim()) return;
+
+      const record = {
+        id: Date.now(),
+        type: currentQrType,
+        text: val.substring(0, 60),
+        time: new Date().toLocaleTimeString()
+      };
+
+      qrHistory.unshift(record);
+      if (qrHistory.length > 20) qrHistory.pop();
+      localStorage.setItem('omni_qr_history', JSON.stringify(qrHistory));
+      renderHistoryList();
+      showToast('Saved to local history log!');
+    }
+
+    function renderHistoryList() {
+      const listEl = document.getElementById('historyList');
+      if (!qrHistory.length) {
+        listEl.innerHTML = '<p class="text-slate-500 text-center py-4">No saved activity records found.</p>';
+        return;
+      }
+
+      listEl.innerHTML = qrHistory.map(item => `
+        <div class="p-2.5 rounded-xl bg-slate-950 border border-blue-900/50 flex items-center justify-between">
+          <div>
+            <span class="font-bold text-blue-400 uppercase text-[10px] mr-2">[${item.type}]</span>
+            <span class="text-slate-200 font-mono">${escapeHtml(item.text)}</span>
+          </div>
+          <span class="text-[10px] text-slate-500 font-mono">${item.time}</span>
+        </div>
+      `).join('');
+    }
+
+    function clearHistoryLog() {
+      qrHistory = [];
+      localStorage.removeItem('omni_qr_history');
+      renderHistoryList();
+      showToast('History cleared');
+    }
+
+    function toggleHistoryModal() {
+      document.getElementById('historyModal').classList.toggle('hidden');
+    }
+
+    function copyToClipboard(elementId) {
+      const text = document.getElementById(elementId).value;
+      if (!text) return;
+      
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+
+      showToast('Copied to clipboard!');
+    }
+
+    function downloadTextFile(elementId) {
+      const text = document.getElementById(elementId).value;
+      if (!text) return;
+      const blob = new Blob([text], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `output-${Date.now()}.txt`;
+      a.click();
+      showToast('File saved as .txt');
+    }
+
+    function clearText(elementId) {
+      document.getElementById(elementId).value = '';
+      processBase64Text();
+    }
+
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = message;
+      toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+      
+      setTimeout(() => {
+        toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+      }, 2500);
+    }
+  </script>
+</body>
+</html>
